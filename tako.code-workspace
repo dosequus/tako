@@ -1,0 +1,17 @@
+{
+     "folders": [
+          {
+               "path": "."
+          }
+     ],
+     "settings": {
+          "files.associations": {
+               "vector": "cpp",
+               "array": "cpp",
+               "iterator": "cpp",
+               "string": "cpp",
+               "string_view": "cpp",
+               "iosfwd": "cpp"
+          }
+     }
+}
