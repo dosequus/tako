@@ -1,36 +1,226 @@
-#ifndef TAKO_H
-#define TAKO_H
+#include <iostream>
+#include <string>
+#include <stdlib.h>
+#include "tako.h"
 
-typedef unsigned long long int64;
-#define C64(constantInt64) constantInt64##ULL
-#define GetBit(data, y) (((data) >> (y)) & 1)      /** Get Data.Y value   **/
-#define SetBit(data, y) (data) |= (1ULL << (y))    /** Set Data.Y   to 1    **/
-#define ClearBit(data, y) (data) &= ~(1ULL << (y)) /** Clear Data.Y to 0    **/
-#define ToggleBit(data, y) ((data) ^= GetBit((data), (y))) /** Toggle Data.Y  value  **/
-#define Toggle(data) ((data) = ~(data))            /** Toggle Data value     **/
+using std::string;
 
-struct bitboard_t {
-     int64 wP, wN,
-          wB, wR,
-          wQ, wK,
-          bP, bN,
-          bB, bR,
-          bQ, bK;
-};
+int main()
+{
+     bitboard_t bboard = {C64(0),C64(0),C64(0),C64(0),C64(0),C64(0),
+                         C64(0),C64(0),C64(0),C64(0),C64(0),C64(0)};
 
-void arrayToBitboard(char (&)[8][8], bitboard_t &);
-void printBitboard(bitboard_t bboard);
+     char stndrdboard[8][8] = {
+         {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+         {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+         {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}};
 
-std::string whitePawnMoves(bitboard_t, std::string);
+     char board[8][8] = {
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {'K', 'K', 'K', 'K', 'K', 'K', 'K', 'K'},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}};
 
+     arrayToBitboard(stndrdboard, bboard);
+     std::cout << whitePawnMoves(bboard, "") << std::endl;
+     return 0;
+}
 
-const int64 aFile = C64(72340172838076673);
-const int64 hFile = C64(9259542123273814144);
-const int64 rank8 = C64(255);
-const int64 rank4 = C64(1095216660480);
-const int64 rank5 = C64(4278190080);
-const int64 fileMasks[] = {
-    C64(0x101010101010101), C64(0x202020202020202), C64(0x404040404040404), C64(0x808080808080808),
-    C64(0x101010101010101), C64(0x202020202020202), C64(0x404040404040404), C64(0x808080808080808)};
+void arrayToBitboard(char (&board)[8][8], bitboard_t &bboard)
+{
+     for (int i = 0; i < 64; i++)
+     {
+          switch (board[i / 8][i % 8])
+          {
+          case 'p':
+               SetBit(bboard.bP, i);
+               break;
+          case 'n':
+               SetBit(bboard.bN, i);
+               break;
+          case 'b':
+               SetBit(bboard.bB, i);
+               break;
+          case 'r':
+               SetBit(bboard.bR, i);
+               break;
+          case 'q':
+               SetBit(bboard.bQ, i);
+               break;
+          case 'k':
+               SetBit(bboard.bK, i);
+               break;
+          case 'P':
+               SetBit(bboard.wP, i);
+               break;
+          case 'N':
+               SetBit(bboard.wN, i);
+               break;
+          case 'B':
+               SetBit(bboard.wB, i);
+               break;
+          case 'R':
+               SetBit(bboard.wR, i);
+               break;
+          case 'Q':
+               SetBit(bboard.wQ, i);
+               break;
+          case 'K':
+               SetBit(bboard.wK, i);
+               break;
+          default:
+               break;
+          }
+     }
+}
 
-#endif
+// for debugging
+void printBitboard(bitboard_t bboard){
+     string board[8] = {"        ",
+                    "        ",
+                    "        ",
+                    "        ",
+                    "        ",
+                    "        ",
+                    "        ",
+                    "        "};
+     for(int i = 0; i < 64; i++){
+          if(GetBit(bboard.wP, i)) board[i/8][i%8] = 'P';
+          if(GetBit(bboard.wN, i)) board[i/8][i%8] = 'N';
+          if(GetBit(bboard.wB, i)) board[i/8][i%8] = 'B';
+          if(GetBit(bboard.wR, i)) board[i/8][i%8] = 'R';
+          if(GetBit(bboard.wQ, i)) board[i/8][i%8] = 'Q';
+          if(GetBit(bboard.wK, i)) board[i/8][i%8] = 'K';
+
+          if(GetBit(bboard.bP, i)) board[i/8][i%8] = 'p';
+          if(GetBit(bboard.bN, i)) board[i/8][i%8] = 'n';
+          if(GetBit(bboard.bB, i)) board[i/8][i%8] = 'b';
+          if(GetBit(bboard.bR, i)) board[i/8][i%8] = 'r';
+          if(GetBit(bboard.bQ, i)) board[i/8][i%8] = 'q';
+          if(GetBit(bboard.bK, i)) board[i/8][i%8] = 'k';
+     }
+     for(auto &rank : board)
+          std::cout << rank << std::endl;
+}
+
+string whitePawnMoves(bitboard_t board, string hist)
+{
+     // https://www.youtube.com/watch?v=YHeV9sfLCro&list=PLQV5mozTHmacMeRzJCW_8K3qw2miYqd0c&index=7
+     // More optimizations on search? something like that
+     // (gist is you start searching at MSB and stop at LSB)
+     int64 white = board.wP | board.wN | board.wB | board.wR | board.wQ | board.wK;
+     int64 black = board.bP | board.bN | board.bB | board.bR | board.bQ | board.bK;
+     int64 empty = ~white & ~black;
+     
+     // https://stackoverflow.com/questions/6506356/java-implementation-of-long-numberoftrailingzeros
+     auto trailing_zeros = [&](int64 x){
+          if(x == 0) return 64;
+          int64 a = x, b;
+          int n = 63;
+          b = x << 32; if(b != 0) { n -= 32; a = b; }
+          b = x << 16; if(b != 0) { n -= 16; a = b; }
+          b = x <<  8; if(b != 0) { n -=  8; a = b; }
+          b = x <<  4; if(b != 0) { n -=  4; a = b; }
+          b = x <<  2; if(b != 0) { n -=  2; a = b; }
+          return (int)(n - (x << 1) >> 63);
+     };
+
+     string list = "";
+
+     int64 captureLeft = (board.wP >> 9) & black & ~rank8 & ~hFile;
+     for (int i = trailing_zeros(captureLeft); i < 64-trailing_zeros(captureLeft); i++)
+     {
+          if (GetBit(captureLeft, i))
+          {
+               list += std::to_string(i / 8 + 1) + std::to_string(i % 8 + 1) + std::to_string(i / 8) + std::to_string(i % 8);
+          }
+     }
+
+     int64 captureRight = (board.wP >> 7) & black & ~rank8 & ~aFile;
+     for (int i = trailing_zeros(captureRight); i < 64-trailing_zeros(captureRight); i++)
+     {
+          if (GetBit(captureRight, i))
+          {
+               list += std::to_string(i / 8 + 1) + std::to_string(i % 8 - 1) + std::to_string(i / 8) + std::to_string(i % 8);
+          }
+     }
+
+     int64 moveForwardOne = (board.wP >> 8) & empty & ~rank8;
+     for (int i = trailing_zeros(moveForwardOne); i < 64-trailing_zeros(moveForwardOne); i++)
+     {
+          if (GetBit(moveForwardOne, i))
+          {
+               list += std::to_string(i / 8 + 1) + std::to_string(i % 8) + std::to_string(i / 8) + std::to_string(i % 8);
+          }
+     }
+
+     int64 moveForwardTwo = (board.wP >> 16) & empty & (empty >> 8) & rank4;
+     for (int i = trailing_zeros(moveForwardTwo); i < 64-trailing_zeros(moveForwardTwo); i++)
+     {
+          if (GetBit(moveForwardTwo, i))
+          {
+               list += std::to_string(i / 8 + 2) + std::to_string(i % 8) + std::to_string(i / 8) + std::to_string(i % 8);
+          }
+     }
+
+     int64 promoteLeft = (board.wP >> 9) & black & rank8 & ~hFile;
+     for (int i = trailing_zeros(promoteLeft); i < 64-trailing_zeros(promoteLeft); i++)
+     {
+          if (GetBit(promoteLeft, i))
+          {
+               list += std::to_string(i % 8 + 1) + std::to_string(i % 8) + "QP" + std::to_string(i % 8 + 1) + std::to_string(i % 8) + "RP" + std::to_string(i % 8 + 1) + std::to_string(i % 8) + "BP" + std::to_string(i % 8 + 1) + std::to_string(i % 8) + "KP";
+          }
+     }
+
+     int64 promoteRight = (board.wP >> 7) & black & rank8 & ~aFile;
+     for (int i = 0; i < 64; i++)
+     {
+          if (GetBit(promoteRight, i))
+          {
+               list += std::to_string(i % 8 - 1) + std::to_string(i % 8) + "QP" + std::to_string(i % 8 - 1) + std::to_string(i % 8) + "RP" + std::to_string(i % 8 - 1) + std::to_string(i % 8) + "BP" + std::to_string(i % 8 - 1) + std::to_string(i % 8) + "KP";
+          }
+     }
+
+     int64 promoteUp = (board.wP >> 8) & empty & rank8;
+     for (int i = trailing_zeros(promoteUp); i < 64-trailing_zeros(promoteUp); i++)
+     {
+          if (GetBit(promoteUp, i))
+          {
+               list += std::to_string(i % 8) + std::to_string(i % 8) + "QP" + std::to_string(i % 8) + std::to_string(i % 8) + "RP" + std::to_string(i % 8) + std::to_string(i % 8) + "BP" + std::to_string(i % 8) + std::to_string(i % 8) + "KP";
+          }
+     }
+
+     if (hist.length() >= 4)
+     {
+          if (hist[hist.length() - 1] == hist[hist.length() - 3] && abs(hist[hist.length() - 2 ] - hist[hist.length() - 4] == 2))
+          {
+               int file = hist[hist.length() - 1] - '0';
+
+               int64 enpassLeft = (board.wP >> 1) & board.bP & rank5 & ~hFile & fileMasks[file];
+               if (enpassLeft != 0)
+               {
+                    int index = trailing_zeros(enpassLeft);
+                    list += std::to_string(index % 8 + 1) + std::to_string(index % 8) + " E";
+               }
+
+               int64 enpassRight = (board.wP << 1) & board.bP & rank5 & ~aFile & fileMasks[file];
+               if (enpassLeft != 0)
+               {
+                    int index = trailing_zeros(enpassRight);
+                    list += std::to_string(index % 8 - 1) + std::to_string(index % 8) + " E";
+               }
+          }
+     }
+
+     // Format for now is x1, y1, x2, y2 sans comma and space and then for promotions is y1, y2, piece, P
+     return list;
+}
