@@ -136,7 +136,7 @@ string whitePawnMoves(bitboard_t board, string hist)
 
      string list = "";
 
-     int64 captureLeft = (board.wP >> 9) & black & ~rank8 & ~hFile;
+     int64 captureLeft = (board.wP >> 9) & black & ~RANK8 & ~H_FILE;
      for (int i = trailing_zeros(captureLeft); i < 64-trailing_zeros(captureLeft); i++)
      {
           if (GetBit(captureLeft, i))
@@ -145,7 +145,7 @@ string whitePawnMoves(bitboard_t board, string hist)
           }
      }
 
-     int64 captureRight = (board.wP >> 7) & black & ~rank8 & ~aFile;
+     int64 captureRight = (board.wP >> 7) & black & ~RANK8 & ~A_FILE;
      for (int i = trailing_zeros(captureRight); i < 64-trailing_zeros(captureRight); i++)
      {
           if (GetBit(captureRight, i))
@@ -154,7 +154,7 @@ string whitePawnMoves(bitboard_t board, string hist)
           }
      }
 
-     int64 moveForwardOne = (board.wP >> 8) & empty & ~rank8;
+     int64 moveForwardOne = (board.wP >> 8) & empty & ~RANK8;
      for (int i = trailing_zeros(moveForwardOne); i < 64-trailing_zeros(moveForwardOne); i++)
      {
           if (GetBit(moveForwardOne, i))
@@ -163,7 +163,7 @@ string whitePawnMoves(bitboard_t board, string hist)
           }
      }
 
-     int64 moveForwardTwo = (board.wP >> 16) & empty & (empty >> 8) & rank4;
+     int64 moveForwardTwo = (board.wP >> 16) & empty & (empty >> 8) & RANK4;
      for (int i = trailing_zeros(moveForwardTwo); i < 64-trailing_zeros(moveForwardTwo); i++)
      {
           if (GetBit(moveForwardTwo, i))
@@ -172,7 +172,7 @@ string whitePawnMoves(bitboard_t board, string hist)
           }
      }
 
-     int64 promoteLeft = (board.wP >> 9) & black & rank8 & ~hFile;
+     int64 promoteLeft = (board.wP >> 9) & black & RANK8 & ~H_FILE;
      for (int i = trailing_zeros(promoteLeft); i < 64-trailing_zeros(promoteLeft); i++)
      {
           if (GetBit(promoteLeft, i))
@@ -181,7 +181,7 @@ string whitePawnMoves(bitboard_t board, string hist)
           }
      }
 
-     int64 promoteRight = (board.wP >> 7) & black & rank8 & ~aFile;
+     int64 promoteRight = (board.wP >> 7) & black & RANK8 & ~A_FILE;
      for (int i = 0; i < 64; i++)
      {
           if (GetBit(promoteRight, i))
@@ -190,7 +190,7 @@ string whitePawnMoves(bitboard_t board, string hist)
           }
      }
 
-     int64 promoteUp = (board.wP >> 8) & empty & rank8;
+     int64 promoteUp = (board.wP >> 8) & empty & RANK8;
      for (int i = trailing_zeros(promoteUp); i < 64-trailing_zeros(promoteUp); i++)
      {
           if (GetBit(promoteUp, i))
@@ -205,14 +205,14 @@ string whitePawnMoves(bitboard_t board, string hist)
           {
                int file = hist[hist.length() - 1] - '0';
 
-               int64 enpassLeft = (board.wP >> 1) & board.bP & rank5 & ~hFile & fileMasks[file];
+               int64 enpassLeft = (board.wP >> 1) & board.bP & RANK5 & ~H_FILE & FILE_MASK[file];
                if (enpassLeft != 0)
                {
                     int index = trailing_zeros(enpassLeft);
                     list += std::to_string(index % 8 + 1) + std::to_string(index % 8) + " E";
                }
 
-               int64 enpassRight = (board.wP << 1) & board.bP & rank5 & ~aFile & fileMasks[file];
+               int64 enpassRight = (board.wP << 1) & board.bP & RANK5 & ~A_FILE & FILE_MASK[file];
                if (enpassLeft != 0)
                {
                     int index = trailing_zeros(enpassRight);
@@ -223,4 +223,42 @@ string whitePawnMoves(bitboard_t board, string hist)
 
      // Format for now is x1, y1, x2, y2 sans comma and space and then for promotions is y1, y2, piece, P
      return list;
+}
+
+
+/**
+ * returns all possible squares a piece can move to assuming it is capable of such movement.
+ * index: the 1-dimensional index of the piece we are interested in.
+ */
+int64 horizontalVerticalMoves(bitboard_t board, int index){
+     int64 occupied = (board.wP | board.wN | board.wB | board.wR | board.wQ | board.wK) 
+          | (board.bP | board.bN | board.bB | board.bR | board.bQ | board.bK);
+     int64 binary_index = 1 << index; // bit vector
+     int64 horizontal = (occupied - binary_index<<1) 
+          ^ reverseull(reverseull(occupied) - reverseull(binary_index)<<1);
+     int64 vertical = ((occupied&FILE_MASK[index%8]) - binary_index<<1) 
+          ^ reverseull(reverseull(occupied&FILE_MASK[index%8]) - reverseull(binary_index)<<1);
+     return horizontal&RANK_MASK[index/8] | vertical&FILE_MASK[index%8];
+}
+
+int64 diagonalMoves(bitboard_t board, int index){
+     int64 occupied = (board.wP | board.wN | board.wB | board.wR | board.wQ | board.wK) 
+          | (board.bP | board.bN | board.bB | board.bR | board.bQ | board.bK);
+     int64 binary_index = 1 << index; // bit vector
+     int64 major = (occupied&MAJOR_MASK[(index/8)+(index%8)] - binary_index<<1) 
+          ^ reverseull(reverseull(occupied&MAJOR_MASK[(index/8)+(index%8)]) - reverseull(binary_index)<<1);
+     int64 minor = (occupied&MINOR_MASK[(index/8)+7-(index%8)] - binary_index<<1) 
+          ^ reverseull(reverseull(occupied&MINOR_MASK[(index/8)+7-(index%8)]) - reverseull(binary_index)<<1);
+     return major&MAJOR_MASK[(index/8)+(index%8)] | minor&MINOR_MASK[(index/8)+7-(index%8)];
+}
+
+//reverses an unsigned long long with masking and shifting
+int64 reverseull(int64 n){
+     int64 size = 8*sizeof(n);
+     int64 mask = ~C64(0);
+     while(size >>= 1){
+          mask ^= mask << size;
+          n = ((n>>size) & mask) | ((n >> size) & ~mask);
+     }
+     return n;
 }
