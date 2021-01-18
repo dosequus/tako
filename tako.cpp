@@ -20,18 +20,18 @@ int main()
          {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
          {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}};
 
-     char board[8][8] = {
-         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-         {'K', 'K', 'K', 'K', 'K', 'K', 'K', 'K'},
-         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+     char test_board[8][8] = {
+         {' ', ' ', ' ', ' ', ' ', ' ', 'k', ' '},
+         {' ', ' ', ' ', ' ', ' ', 'R', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', ' ', 'P', ' '},
+         {' ', ' ', ' ', ' ', 'B', 'p', 'r', 'P'},
+         {' ', ' ', ' ', 'p', 'n', ' ', ' ', ' '},
+         {' ', ' ', ' ', ' ', ' ', 'K', ' ', ' '},
          {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
          {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}};
 
-     arrayToBitboard(stndrdboard, bboard);
-     std::cout << whitePawnMoves(bboard, "") << std::endl;
+     arrayToBitboard(test_board, bboard);
+     std::cout << whiteBishopMoves(bboard) << std::endl;
      return 0;
 }
 
@@ -122,16 +122,16 @@ string whitePawnMoves(bitboard_t board, string hist)
      int64 empty = ~white & ~black;
      
      // https://stackoverflow.com/questions/6506356/java-implementation-of-long-numberoftrailingzeros
-     auto trailing_zeros = [&](int64 x){
+     auto trailing_zeros = [](int64 x){
           if(x == 0) return 64;
           int64 a = x, b;
           int n = 63;
-          b = x << 32; if(b != 0) { n -= 32; a = b; }
-          b = x << 16; if(b != 0) { n -= 16; a = b; }
-          b = x <<  8; if(b != 0) { n -=  8; a = b; }
-          b = x <<  4; if(b != 0) { n -=  4; a = b; }
-          b = x <<  2; if(b != 0) { n -=  2; a = b; }
-          return (int)(n - (x << 1) >> 63);
+          b = a << 32; if(b != 0) { n -= 32; a = b; }
+          b = a << 16; if(b != 0) { n -= 16; a = b; }
+          b = a <<  8; if(b != 0) { n -=  8; a = b; }
+          b = a <<  4; if(b != 0) { n -=  4; a = b; }
+          b = a <<  2; if(b != 0) { n -=  2; a = b; }
+          return (int)(n - ((a << 1) >> 63));
      };
 
      string list = "";
@@ -225,12 +225,54 @@ string whitePawnMoves(bitboard_t board, string hist)
      return list;
 }
 
+string whiteBishopMoves(bitboard_t board)
+{
+     string list;
+     int64 bishop = board.wB & ~(board.wB-1);
+     auto trailing_zeros = [](int64 x){
+          if(x == 0) return 64;
+          int64 a = x, b;
+          int n = 63;
+          b = a << 32; if(b != 0) { n -= 32; a = b; }
+          b = a << 16; if(b != 0) { n -= 16; a = b; }
+          b = a <<  8; if(b != 0) { n -=  8; a = b; }
+          b = a <<  4; if(b != 0) { n -=  4; a = b; }
+          b = a <<  2; if(b != 0) { n -=  2; a = b; }
+          return (int)(n - ((a << 1) >> 63));
+     };
+     while(bishop != 0){
+          using std::cout; using std::endl;
+          
+          int bishop_index = trailing_zeros(bishop);
+          
+          int64 moves = diagonalMoves(board, bishop_index)&(board.bP | board.bN | board.bB | board.bR | board.bQ | board.bK);
+          cout << moves << endl;
+          int64 sq = moves & ~(moves-1);
+          while(sq!=0){
+               cout << sq << endl;
+               int index = trailing_zeros(sq);
+               list.push_back((char)(bishop_index/8));
+               list.push_back((char)(bishop_index%8));
+               list.push_back((char)(index/8));
+               list.push_back((char)(index%8));
+               
+               moves &= ~sq;
+               sq = moves & ~(moves-1);
+          }
+          board.wB &= ~bishop;
+          bishop = board.wB & ~(board.wB-1);
+     }
+     return list;
+}
+
+int64 reverseull(int64);
 
 /**
  * returns all possible squares a piece can move to assuming it is capable of such movement.
  * index: the 1-dimensional index of the piece we are interested in.
  */
 int64 horizontalVerticalMoves(bitboard_t board, int index){
+
      int64 occupied = (board.wP | board.wN | board.wB | board.wR | board.wQ | board.wK) 
           | (board.bP | board.bN | board.bB | board.bR | board.bQ | board.bK);
      int64 binary_index = 1 << index; // bit vector
@@ -242,23 +284,36 @@ int64 horizontalVerticalMoves(bitboard_t board, int index){
 }
 
 int64 diagonalMoves(bitboard_t board, int index){
+     
      int64 occupied = (board.wP | board.wN | board.wB | board.wR | board.wQ | board.wK) 
           | (board.bP | board.bN | board.bB | board.bR | board.bQ | board.bK);
      int64 binary_index = 1 << index; // bit vector
-     int64 major = (occupied&MAJOR_MASK[(index/8)+(index%8)] - binary_index<<1) 
-          ^ reverseull(reverseull(occupied&MAJOR_MASK[(index/8)+(index%8)]) - reverseull(binary_index)<<1);
-     int64 minor = (occupied&MINOR_MASK[(index/8)+7-(index%8)] - binary_index<<1) 
-          ^ reverseull(reverseull(occupied&MINOR_MASK[(index/8)+7-(index%8)]) - reverseull(binary_index)<<1);
-     return major&MAJOR_MASK[(index/8)+(index%8)] | minor&MINOR_MASK[(index/8)+7-(index%8)];
+     //TODO FIX ERRORS HERE
+     // I cannot figure out how major & MAJOR_MASK[insert index] comes out to zero here for the life of me
+     int64 major = (occupied&MAJOR_MASK[(index/8)+(index%8)] - binary_index<<1) ^ reverseull(reverseull(occupied&MAJOR_MASK[(index/8)+(index%8)]) - reverseull(binary_index)<<1);
+     int64 minor = (occupied&MINOR_MASK[(index/8)+7-(index%8)] - binary_index<<1) ^ reverseull(reverseull(occupied&MINOR_MASK[(index/8)+7-(index%8)]) - reverseull(binary_index)<<1);
+     //failing sanity checks
+     // std::cout << major << std::endl;
+     // std::cout << MAJOR_MASK[(index/8)+(index%8)] << std::endl;
+     // std::cout << (major&(MAJOR_MASK[(index/8)+(index%8)])) << std::endl;
+
+     // std::cout << minor << std::endl;
+     // std::cout << (MINOR_MASK[(index/8)+7-(index%8)]) << std::endl;
+     // std::cout << (minor&MINOR_MASK[(index/8)+7-(index%8)]) << std::endl;
+     return (major&MAJOR_MASK[(index/8)+(index%8)]) | (minor&MINOR_MASK[(index/8)+7-(index%8)]);
 }
 
-//reverses an unsigned long long with masking and shifting
-int64 reverseull(int64 n){
-     int64 size = 8*sizeof(n);
-     int64 mask = ~C64(0);
-     while(size >>= 1){
-          mask ^= mask << size;
-          n = ((n>>size) & mask) | ((n >> size) & ~mask);
+// reverses an unsigned long long with masking and shifting
+// http://graphics.stanford.edu/~seander/bithacks.html#BitReverseObvious
+int64 reverseull(int64 v){
+     int64 r = v; // r will be reversed bits of v; first get LSB of v
+     int s = sizeof(v) * CHAR_BIT - 1; // extra shift needed at end
+     for (v >>= 1; v; v >>= 1)
+     {   
+          r <<= 1;
+          r |= v & 1;
+          s--;
      }
-     return n;
+     r <<= s;
+     return r;
 }

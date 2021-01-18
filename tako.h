@@ -1,7 +1,7 @@
 #ifndef TAKO_H
 #define TAKO_H
 
-typedef unsigned long long int64;
+using int64 = uint64_t;
 #define C64(constantInt64) constantInt64##ULL
 #define GetBit(data, y) (((data) >> (y)) & 1)      /** Get Data.Y value   **/
 #define SetBit(data, y) (data) |= (1ULL << (y))    /** Set Data.Y   to 1    **/
@@ -22,13 +22,15 @@ void arrayToBitboard(char (&)[8][8], bitboard_t &);
 void printBitboard(bitboard_t bboard);
 
 std::string whitePawnMoves(bitboard_t, std::string);
+std::string whiteBishopMoves(bitboard_t);
+int64 horizontalVerticalMoves(bitboard_t, int);
+int64 diagonalMoves(bitboard_t, int);
 
-
-const int64 A_FILE = C64(72340172838076673);
-const int64 H_FILE = C64(9259542123273814144);
-const int64 RANK8 = C64(255);
-const int64 RANK4 = C64(1095216660480);
-const int64 RANK5 = C64(4278190080);
+constexpr int64 A_FILE = C64(72340172838076673);
+constexpr int64 H_FILE = C64(9259542123273814144);
+constexpr int64 RANK8 = C64(255);
+constexpr int64 RANK4 = C64(1095216660480);
+constexpr int64 RANK5 = C64(4278190080);
 constexpr int64 RANK_MASK[]{
     C64(0xFF), C64(0xFF00), C64(0xFF0000), C64(0xFF000000), C64(0xFF00000000), 
     C64(0xFF0000000000), C64(0xFF000000000000), C64(0xFF00000000000000)};
