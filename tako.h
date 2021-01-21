@@ -46,19 +46,15 @@ int trailing_zeros(int64 x)
 }
 
 // reverses an unsigned long long with masking and shifting
-// http://graphics.stanford.edu/~seander/bithacks.html#BitReverseObvious
 int64 reverseull(int64 v)
 {
-     int64 r = v; // r will be reversed bits of v; first get LSB of v
-     int s = sizeof(v) * CHAR_BIT - 1; // extra shift needed at end
-     for (v >>= 1; v; v >>= 1)
-     {   
-          r <<= 1;
-          r |= v & 1;
-          s--;
-     }
-     r <<= s;
-     return r;
+    v = ((v & 0xffffffff00000000) >> 32) |((v & 0x00000000ffffffff) << 32);
+    v = ((v & 0xffff0000ffff0000) >> 16) |((v & 0x0000ffff0000ffff) << 16);
+    v = ((v & 0xff00ff00ff00ff00) >> 8) | ((v & 0x00ff00ff00ff00ff) << 8);
+    v = ((v & 0xf0f0f0f0f0f0f0f0) >> 4) | ((v & 0x0f0f0f0f0f0f0f0f) << 4);
+    v = ((v & 0xcccccccccccccccc) >> 2) | ((v & 0x3333333333333333) << 2);
+    v = ((v & 0xaaaaaaaaaaaaaaaa) >> 1) | ((v & 0x5555555555555555) << 1);
+    return v;
 }
 
 constexpr int64 A_FILE = C64(72340172838076673);
