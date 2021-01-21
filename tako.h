@@ -1,6 +1,8 @@
 #ifndef TAKO_H
 #define TAKO_H
 
+
+
 using int64 = uint64_t;
 #define C64(constantInt64) constantInt64##ULL
 #define GetBit(data, y) (((data) >> (y)) & 1)      /** Get Data.Y value   **/
@@ -9,7 +11,8 @@ using int64 = uint64_t;
 #define ToggleBit(data, y) ((data) ^= GetBit((data), (y))) /** Toggle Data.Y  value  **/
 #define Toggle(data) ((data) = ~(data))            /** Toggle Data value     **/
 
-struct bitboard_t {
+struct bitboard_t 
+{
      int64 wP, wN,
           wB, wR,
           wQ, wK,
@@ -23,8 +26,40 @@ void printBitboard(bitboard_t bboard);
 
 std::string whitePawnMoves(bitboard_t, std::string);
 std::string whiteBishopMoves(bitboard_t);
+std::string whiteRookMoves(bitboard_t);
 int64 horizontalVerticalMoves(bitboard_t, int);
 int64 diagonalMoves(bitboard_t, int);
+std::string whiteSlidingMoves(bitboard_t, int64, std::function<int64(bitboard_t, int)>);
+
+// https://stackoverflow.com/questions/6506356/java-implementation-of-long-numberoftrailingzeros
+int trailing_zeros(int64 x)
+{
+    if(x == 0) return 64;
+    int64 a = x, b;
+    int n = 63;
+    b = a << 32; if(b != 0) { n -= 32; a = b; }
+    b = a << 16; if(b != 0) { n -= 16; a = b; }
+    b = a <<  8; if(b != 0) { n -=  8; a = b; }
+    b = a <<  4; if(b != 0) { n -=  4; a = b; }
+    b = a <<  2; if(b != 0) { n -=  2; a = b; }
+    return (int)(n - ((a << 1) >> 63));
+}
+
+// reverses an unsigned long long with masking and shifting
+// http://graphics.stanford.edu/~seander/bithacks.html#BitReverseObvious
+int64 reverseull(int64 v)
+{
+     int64 r = v; // r will be reversed bits of v; first get LSB of v
+     int s = sizeof(v) * CHAR_BIT - 1; // extra shift needed at end
+     for (v >>= 1; v; v >>= 1)
+     {   
+          r <<= 1;
+          r |= v & 1;
+          s--;
+     }
+     r <<= s;
+     return r;
+}
 
 constexpr int64 A_FILE = C64(72340172838076673);
 constexpr int64 H_FILE = C64(9259542123273814144);
