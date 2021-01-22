@@ -225,6 +225,11 @@ string whiteRookMoves(bitboard_t board)
      return whiteSlidingMoves(board, board.wR, horizontalVerticalMoves);
 }
 
+string whiteQueenMoves(bitboard_t board)
+{
+     return whiteSlidingMoves(board, board.wQ, diagonalMoves)+whiteSlidingMoves(board, board.wQ, horizontalVerticalMoves);
+}
+
 string whiteSlidingMoves(bitboard_t board, int64 pieceboard, std::function<int64(bitboard_t, int)> moveFunction)
 {
      string list;
