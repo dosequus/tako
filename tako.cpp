@@ -33,7 +33,7 @@ int main()
          {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}};
 
      arrayToBitboard(test_board, bboard);
-     std::cout << whiteRookMoves(bboard) << std::endl;
+     std::cout << whiteKnightMoves(bboard) << std::endl;
      return 0;
 }
 
@@ -250,6 +250,27 @@ string whiteSlidingMoves(bitboard_t board, int64 pieceboard, std::function<int64
           }
           pieceboard &= ~piece;
           piece = pieceboard & ~(pieceboard-1);
+     }
+     return list;
+}
+
+string whiteKnightMoves(bitboard_t board){
+     string list;
+     for(int i = 0; i < 64; i++){
+          if(GetBit(board.wK, i)){
+               int64 moves = knightAttacks(1 << i);
+               int64 sq = moves & ~(moves-1);
+               while(sq){
+                    int index = trailing_zeros(sq);
+                    list.append(std::to_string(i/8));
+                    list.append(std::to_string(i%8));
+                    list.append(std::to_string(index/8));
+                    list.append(std::to_string(index%8));
+                    
+                    moves &= ~sq;
+                    sq = moves & ~(moves-1);
+               }
+          }
      }
      return list;
 }

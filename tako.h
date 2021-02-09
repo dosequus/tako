@@ -27,6 +27,7 @@ void printBitboard(bitboard_t bboard);
 std::string whitePawnMoves(bitboard_t, std::string);
 std::string whiteBishopMoves(bitboard_t);
 std::string whiteRookMoves(bitboard_t);
+std::string whiteKnightMoves(bitboard_t);
 int64 horizontalVerticalMoves(bitboard_t, int);
 int64 diagonalMoves(bitboard_t, int);
 std::string whiteSlidingMoves(bitboard_t, int64, std::function<int64(bitboard_t, int)>);
@@ -55,6 +56,16 @@ int64 reverseull(int64 v)
     v = ((v & 0xcccccccccccccccc) >> 2) | ((v & 0x3333333333333333) << 2);
     v = ((v & 0xaaaaaaaaaaaaaaaa) >> 1) | ((v & 0x5555555555555555) << 1);
     return v;
+}
+
+int64 knightAttacks(int64 knights) {
+   int64 l1 = (knights >> 1) & C64(0x7f7f7f7f7f7f7f7f);
+   int64 l2 = (knights >> 2) & C64(0x3f3f3f3f3f3f3f3f);
+   int64 r1 = (knights << 1) & C64(0xfefefefefefefefe);
+   int64 r2 = (knights << 2) & C64(0xfcfcfcfcfcfcfcfc);
+   int64 h1 = l1 | r1;
+   int64 h2 = l2 | r2;
+   return (h1<<16) | (h1>>16) | (h2<<8) | (h2>>8);
 }
 
 constexpr int64 A_FILE = C64(72340172838076673);
